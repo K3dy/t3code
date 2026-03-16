@@ -1,0 +1,60 @@
+name: Build t3code
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to build (tag, branch, or commit)"
+        required: false
+        default: "main"
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v5
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            curl \
+            ca-certificates \
+            openssl \
+            python3 \
+            build-essential
+
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
+      - name: Verify Bun
+        run: bun --version
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+
+      - name: Clone t3code
+        run: git clone https://github.com/pingdotgg/t3code.git /opt/t3code
+
+      - name: Checkout requested ref
+        working-directory: /opt/t3code
+        run: |
+          REF="${{ github.event.inputs.ref || 'main' }}"
+          git fetch --tags --force
+          git checkout "$REF"
+
+      - name: Install dependencies
+        working-directory: /opt/t3code
+        run: bun install
+
+      - name: Build
+        working-directory: /opt/t3code
+        run: bun run build
