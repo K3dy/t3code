@@ -7,18 +7,12 @@ on:
         description: "Git ref to build (tag, branch, or commit)"
         required: false
         default: "main"
-  push:
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout current repository
-        uses: actions/checkout@v5
-
       - name: Install system packages
         run: |
           sudo apt-get update
@@ -30,13 +24,21 @@ jobs:
             python3 \
             build-essential
 
-      - name: Install Bun
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
 
-      - name: Verify Bun
-        run: bun --version
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Verify versions
+        run: |
+          node -v
+          npm -v
+          bun -v
 
       - name: Install Codex CLI
         run: npm install -g @openai/codex
