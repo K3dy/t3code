@@ -34,14 +34,12 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Verify versions
+      - name: Verify runtime versions
         run: |
+          which node
           node -v
-          npm -v
+          which bun
           bun -v
-
-      - name: Install Codex CLI
-        run: npm install -g @openai/codex
 
       - name: Clone t3code
         run: git clone https://github.com/pingdotgg/t3code.git /opt/t3code
@@ -59,4 +57,6 @@ jobs:
 
       - name: Build
         working-directory: /opt/t3code
+        env:
+          CI: "true"
         run: bun run build
